@@ -75,7 +75,7 @@ def mainmenu():
     while(True):
         print("Main Menu : \n")
         menu_options = {
-            1: 'Show all purchase by order transaction',
+            1: 'Purchase History',
             0: 'Exit Program',
         }
 

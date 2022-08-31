@@ -16,10 +16,10 @@ python3 shopee.py
 ```
 
 ## Todo
-- [ ] Add menu selection
-- [x] Show all purchase by order transaction
-- [ ] Show summary
-- [ ] Show all purchase product
+- [x] Menu Selection
+- [x] Purchase History
+- [ ] Calculate Total
+- [ ] Purchase History by Product
 
 ## License
 Licensed under the [MIT license](http://opensource.org/licenses/MIT)
