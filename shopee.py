@@ -12,6 +12,9 @@ def save_json_file(data):
     with open('data/data.json', 'w') as fp:
         json.dump(data,fp)
 
+def where_json_file(file_name):
+    return os.path.exists(file_name)
+
 # Get shopee information from cookies
 def get_shopee():
     seller=[]
@@ -57,7 +60,17 @@ def get_shopee():
     shopee_dict["Shipping Fee"]=shipping_fee
     shopee_dict["Total"]=paid_amount
 
-    save_json_file(shopee_dict)
+    return shopee_dict
+
+    #save_json_file(shopee_dict)
+
+def check_json():
+    if( where_json_file('data/data.json')):
+        pass
+    else:
+        print ("Please wait. This may take a while depend on transaction.")
+        shopeedict=get_shopee()
+        save_json_file(shopeedict)
 
 # Display data from json file
 def df_shopee():
@@ -73,7 +86,8 @@ def mainmenu():
     os.system('cls' if os.name in ('nt', 'dos') else 'clear')
 
     while(True):
-        print("Main Menu : \n")
+        check_json()
+        print("\nMain Menu : \n")
         menu_options = {
             1: 'Purchase History',
             0: 'Exit Program',
@@ -87,7 +101,7 @@ def mainmenu():
         except:
             print('Wrong input. Please enter a number ...')
         if option == 1:
-           print('ok')
+           df_shopee()
         elif option == 0:
             sys.exit(0)
         else:
