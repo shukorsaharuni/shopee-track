@@ -15,6 +15,11 @@ def save_json_file(data):
 def where_json_file(file_name):
     return os.path.exists(file_name)
 
+# calculate price
+def calculate_price(price):
+    new_price=price / 100000
+    return new_price
+
 # Get shopee information from cookies
 def get_shopee():
     seller=[]
@@ -47,9 +52,9 @@ def get_shopee():
                 seller.append(details['seller']['username'])
                 order_id.append(details['ordersn'])
                 create_time.append(datetime.fromtimestamp(details['create_time']).strftime('%d-%m-%Y %H:%M:%S'))
-                paid_amount.append(details['paid_amount'] / 100000)
-                shipping_fee.append(details['shipping_fee'] / 100000)
-                merchandise_subtotal.append(details['merchandise_subtotal'] / 100000)
+                paid_amount.append(calculate_price(details['paid_amount']))
+                shipping_fee.append(calculate_price(['shipping_fee']))
+                merchandise_subtotal.append(calculate_price(['merchandise_subtotal']))
 
         new_offset = res.json()['new_offset']
 
@@ -62,8 +67,7 @@ def get_shopee():
 
     return shopee_dict
 
-    #save_json_file(shopee_dict)
-
+# create json file if not exist
 def check_json():
     if( where_json_file('data/data.json')):
         pass
@@ -77,7 +81,13 @@ def df_shopee():
     f = open('data/data.json')
     shopee_json = json.loads(f.read()) 
     df = pd.DataFrame(shopee_json)
-    #df.loc['total'] = df.sum(numeric_only=True, axis=0)
+    
+    return df
+
+# Display purchase history
+def purchase_history():
+    df=df_shopee()
+    df.loc['Grand Total'] = df.sum(numeric_only=True, axis=0).apply('{:,.2f}'.format)
     print(tabulate.tabulate(df, tablefmt='grid',headers=list(df)))
 
 # Main menu
@@ -101,7 +111,7 @@ def mainmenu():
         except:
             print('Wrong input. Please enter a number ...')
         if option == 1:
-           df_shopee()
+           purchase_history()
         elif option == 0:
             sys.exit(0)
         else:
