@@ -19,6 +19,7 @@ Execute python script.
 
 ```bash
 python shopee.py
+```
 
 ## Todo
 - [x] Menu Selection
