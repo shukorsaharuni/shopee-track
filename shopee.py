@@ -1,14 +1,11 @@
 import os
+import sys
 import requests
 import pandas as pd
 import json
-from threading import Thread
 import tabulate
 import configparser
 from datetime import datetime
-
-# Clear console
-os.system('cls' if os.name in ('nt', 'dos') else 'clear')
 
 # Save data to json file
 def save_json_file(data):
@@ -70,12 +67,31 @@ def df_shopee():
     #df.loc['total'] = df.sum(numeric_only=True, axis=0)
     print(tabulate.tabulate(df, tablefmt='grid',headers=list(df)))
 
-# main function to run
-def main_function():
-    get_shopee()
-    df_shopee()
+# Main menu
+def mainmenu():
+    # Clear console
+    os.system('cls' if os.name in ('nt', 'dos') else 'clear')
+
+    while(True):
+        print("Main Menu : \n")
+        menu_options = {
+            1: 'Show all purchase by order transaction',
+            0: 'Exit Program',
+        }
+
+        for key in menu_options.keys():
+            print (key, '--', menu_options[key] )
+        
+        try:
+            option = int(input('\nEnter your choice: '))
+        except:
+            print('Wrong input. Please enter a number ...')
+        if option == 1:
+           print('ok')
+        elif option == 0:
+            sys.exit(0)
+        else:
+            print('Invalid option. Please enter a number between 1 and 4.')
     
 if __name__ == "__main__":
-    thread = Thread(target=main_function)
-    thread.start()
-    thread.join()
+    mainmenu()
