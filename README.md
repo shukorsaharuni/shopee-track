@@ -9,3 +9,17 @@ Tested on:
 ```
 OS: Windows 10 x64
 ```
+
+### Usage
+```
+python3 shopee.py
+```
+
+## Todo
+- [ ] Add menu selection
+- [x] Show all purchase by order transaction
+- [ ] Show summary
+- [ ] Show all purchase product
+
+## License
+Licensed under the [MIT license](http://opensource.org/licenses/MIT)
