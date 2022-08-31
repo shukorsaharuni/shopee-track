@@ -1,19 +1,24 @@
 # Shopee Tracker in CLI
 Simple app to show spending on shopee website.
 
-Install Dependencies
+### Install Dependencies
 ```
-pip3 install -r requirements.txt
-```
-Tested on:
-```
-OS: Windows 10 x64
+pip install -r requirements.txt
 ```
 
 ### Usage
+Rename `credential.ini.sample` to `credential.ini`.
+Edit `credential.ini` by your editor.
+
 ```
-python3 shopee.py
+[SHOPEE]
+SPC_EC = your shopee cookies here
 ```
+
+Execute python script.
+
+```bash
+python shopee.py
 
 ## Todo
 - [x] Menu Selection
