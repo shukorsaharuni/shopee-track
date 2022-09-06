@@ -24,7 +24,7 @@ python shopee.py
 ## Todo
 - [x] Menu Selection
 - [x] Purchase History
-- [ ] Calculate Total
+- [ ] Calculate Total by Month and Year
 - [ ] Purchase History by Product
 
 ## License
