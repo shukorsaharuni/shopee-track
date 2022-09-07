@@ -124,9 +124,9 @@ def purchase_by_month():
 
 def purchase_summary():
     df = df_shopee()
-    total = df.loc[:, ['Shipping Fee','Purchase Amount']].sum()
+    total = df.loc[:, ['Shipping Fee','Total']].sum()
     total.loc['Transaction'] = df['Order ID'].count()
-    print(total.to_markdown(tablefmt='grid'))
+    print(total.to_markdown(tablefmt='psql'))
 
 # Main menu
 def mainmenu():
