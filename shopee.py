@@ -17,17 +17,14 @@ def where_json_file(file_name):
 
 # calculate price
 def calculate_price(price):
-    new_price=price / 100000
-    return new_price
+    return price / 100000
 
-# get montah name
+# display full montah name. refer https://strftime.org/
 def mapper(month):
    return month.strftime('%B') 
 
 # Get shopee information from cookies
 def get_shopee():
-    global total_progress_bar
-    total_progress_bar=0
     seller=[]
     order_id=[]
     create_time=[]
@@ -66,7 +63,6 @@ def get_shopee():
                 #shipping_fee.append(calculate_price(details['shipping_fee']))
                 #merchandise_subtotal.append(calculate_price(details['merchandise_subtotal']))
 
-        total_progress_bar += 1
         new_offset = res.json()['new_offset']
 
     shopee_dict["Order ID"]=order_id
@@ -93,9 +89,9 @@ def df_shopee():
     shopee_json = json.loads(f.read()) 
     df = pd.DataFrame(shopee_json)
     
-    df['Amount'] = df['Amount'].div(100000).round(2)
-    df['Shipping Fee'] = df['Shipping Fee'].div(100000).round(2)
-    df['Total'] = df['Total'].div(100000).round(2)
+    df['Amount'] = df['Amount'].apply(calculate_price)
+    df['Shipping Fee'] = df['Shipping Fee'].apply(calculate_price)
+    df['Total'] = df['Total'].apply(calculate_price)
     df['Created'] = pd.to_datetime(df['Created'], unit='s')
 
     return df
