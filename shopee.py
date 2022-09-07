@@ -4,7 +4,6 @@ import requests
 import pandas as pd
 import numpy as np
 import json
-import tabulate
 import configparser
 
 # Save data to json file
@@ -84,6 +83,7 @@ def check_json():
         save_json_file(shopeedict)
 
 # Display data from json file
+# tabulate format refer to https://github.com/astanin/python-tabulate#table-format
 def df_shopee():
     f = open('data/data.json')
     shopee_json = json.loads(f.read()) 
@@ -99,9 +99,9 @@ def df_shopee():
 # Display purchase history
 def purchase_history():
     df = df_shopee()
-    
-    df.loc['Grand Total'] = df.sum(numeric_only=True, axis=0).apply('{:,.2f}'.format)
-    print(tabulate.tabulate(df, tablefmt='grid',headers=list(df)))
+    df.set_index('Order ID', drop=True, inplace=True) 
+    df.loc['Grand Total'] = df.sum(numeric_only=True, axis=0).apply('{:,.2f}'.format) 
+    print(df.to_markdown(tablefmt='psql'))
 
 # display pivot table by month
 def purchase_by_month():
@@ -120,7 +120,13 @@ def purchase_by_month():
         margins_name='Total').reset_index()
         
     df_pivot.drop('No_Month', axis=1, inplace=True)
-    print(tabulate.tabulate(df_pivot,tablefmt='grid',headers=list(df_pivot),showindex=False))
+    print(df_pivot.to_markdown(tablefmt='psql',index=False))
+
+def purchase_summary():
+    df = df_shopee()
+    total = df.loc[:, ['Shipping Fee','Purchase Amount']].sum()
+    total.loc['Transaction'] = df['Order ID'].count()
+    print(total.to_markdown(tablefmt='grid'))
 
 # Main menu
 def mainmenu():
@@ -133,6 +139,7 @@ def mainmenu():
         menu_options = {
             1: 'Purchase History',
             2: 'Purchase By Month',
+            3: 'Summary',
             0: 'Exit Program',
         }
 
@@ -147,6 +154,8 @@ def mainmenu():
            purchase_history()
         elif option == 2:
            purchase_by_month()
+        elif option == 3:
+           purchase_summary()
         elif option == 0:
             sys.exit(0)
         else:
