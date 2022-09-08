@@ -101,6 +101,7 @@ def purchase_history():
     df = df_shopee()
     df.set_index('Order ID', drop=True, inplace=True) #set new index and drop default index
     df.loc['Grand Total'] = df.sum(numeric_only=True, axis=0) #sum all numeric column .apply('{:,.2f}'.format) 
+    df.replace({np.nan: None}, inplace = True) #remove nan value
     print(df.to_markdown(tablefmt='psql',floatfmt=',.2f'))
 
 # display pivot table by month
@@ -117,7 +118,7 @@ def purchase_by_month():
         aggfunc=np.sum, 
         fill_value=0,
         margins=True, 
-        margins_name='Total').iloc[:-1,:].reset_index() #remove last row of total and reset the index to remove later
+        margins_name='Total').iloc[:-1,:].reset_index() #remove last row of total and reset the index to drop later
   
     df_pivot.drop('No_Month', axis=1, inplace=True) #no more required, remove
     print(df_pivot.to_markdown(tablefmt='psql',floatfmt=',.2f',index=False))
@@ -125,13 +126,15 @@ def purchase_by_month():
 # purchase history in summary format
 def purchase_summary():
     df = df_shopee()
-    total = df.loc[:, ['Shipping Fee','Total']].sum().to_frame('Total') #sum and rename column
+    total = df.loc[:, ['Shipping Fee','Total']].sum().to_frame('MYR') #sum and rename column
     total.loc['Highest Shipping Fee'] = df['Shipping Fee'].max()
     total.loc['Highest Purchase Amount'] = df['Total'].max()
-    total.loc['Transaction'] = df['Order ID'].count()
-    total.rename(index={'Total': 'Purchase Amount'},inplace=True) #rename index
+    total.loc['Lowest Purchase Amount'] = df['Total'].min()
+    #total.loc['Transaction'] = df['Order ID'].count()
+    total.rename(index={'Shipping Fee': 'Total Shipping Fee'},inplace=True) #rename index
+    total.rename(index={'Total': 'Total Purchase Amount'},inplace=True) #rename index
     total = total.rename_axis('Desription').reset_index() #add column for index and reset
-    print(total.to_markdown(tablefmt='psql',index=False))
+    print(total.to_markdown(tablefmt='psql',floatfmt=',.2f',index=False))
 
 # Main menu
 def mainmenu():
