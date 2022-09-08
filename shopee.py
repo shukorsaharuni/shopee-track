@@ -117,16 +117,19 @@ def purchase_by_month():
         aggfunc=np.sum, 
         fill_value=0,
         margins=True, 
-        margins_name='Total').reset_index()
+        margins_name='Total').iloc[:-1,:].reset_index()
         
     df_pivot.drop('No_Month', axis=1, inplace=True)
     print(df_pivot.to_markdown(tablefmt='psql',index=False))
 
+# purchase history in summary format
 def purchase_summary():
     df = df_shopee()
-    total = df.loc[:, ['Shipping Fee','Total']].sum()
+    total = df.loc[:, ['Shipping Fee','Total']].sum().to_frame('Total')
     total.loc['Transaction'] = df['Order ID'].count()
-    print(total.to_markdown(tablefmt='psql'))
+    total.rename(index={'Total': 'Purchase Amount'},inplace=True)
+    total = total.rename_axis('Desription').reset_index()
+    print(total.to_markdown(tablefmt='psql',index=False))
 
 # Main menu
 def mainmenu():
