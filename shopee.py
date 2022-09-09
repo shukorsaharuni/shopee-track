@@ -171,7 +171,8 @@ def display_menu():
     }
 
     print("-----------------------------------------------------------------")
-    print("Before you continue, make sure that you logged in to shopee.com.my using google chrome browser\n")
+    #print("Before you continue, make sure that you logged in to shopee.com.my using google chrome browser\n")
+    print("Main Menu\n")
     for key in menu_options.keys():
         print (key, '--', menu_options[key] )
 
