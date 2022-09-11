@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import json
 import configparser
+import emoji
+import re
 
 # Save data to json file
 def save_json_file(data):
@@ -17,6 +19,26 @@ def where_json_file(file_name):
 # calculate price
 def calculate_price(price):
     return price / 100000
+
+
+def calculate_discount(original_price,discount_price):
+    return original_price - discount_price
+
+def has_original_price(original_price,item_price):
+    if(original_price > 0):
+        return original_price
+    else:
+        return item_price
+
+def remove_emoji(string):
+    return emoji.replace_emoji(string, '')
+
+def strip_chinese(string):
+    en_list = re.findall(u'[^\u4E00-\u9FA5]', string)
+    for c in string:
+        if c not in en_list:
+            string = string.replace(c, '')
+    return string
 
 # display full montah name. refer https://strftime.org/
 def mapper(month):
@@ -33,6 +55,11 @@ def get_shopee():
     paid_amount=[]
     shipping_fee=[]
     merchandise_subtotal=[]
+    itemid=[]
+    name=[]
+    item_price=[]
+    price_before_discount=[]
+    quantity=[]
 
     shopee_dict={}
     new_offset=0
@@ -51,28 +78,56 @@ def get_shopee():
         
         res=requests.get(url,params,cookies=cookie,headers=header)
         data = res.json()['orders']
-
+        
         for details in data:
             if isinstance(details, dict):
+                #get purchase history
                 seller.append(details['seller']['username'])
                 order_id.append(details['ordersn'])
-                #create_time.append(datetime.fromtimestamp(details['create_time']).strftime('%d-%m-%Y %H:%M:%S'))
                 create_time.append(details['create_time'])
                 paid_amount.append(details['paid_amount'])
                 shipping_fee.append(details['shipping_fee'])
                 merchandise_subtotal.append(details['merchandise_subtotal'])
-                #paid_amount.append(calculate_price(details['paid_amount']))
-                #shipping_fee.append(calculate_price(details['shipping_fee']))
-                #merchandise_subtotal.append(calculate_price(details['merchandise_subtotal']))
+                
+                #get product purchase history
+                for i in range(len(details['items'])):
+                    item = details['items'][i]
+                    if('name' in item):  
+                        itemid.append(item['itemid'])
+                        name.append(item['name'])
+                        item_price.append(item['item_price'])
+                        price_before_discount.append(item['price_before_discount'])
+                        quantity.append(item['amount'])
+                    else:
+                        #for purchase with bundle product
+                        item_detail=item['extinfo']['bundle_order_item']['item_list']
+                        for j in range(len(item_detail)):
+                            itemid.append(item_detail[j]['itemid'])
+                            name.append(item_detail[j]['name'])
+                            item_price.append(item_detail[j]['item_price'])
+                            price_before_discount.append(item_detail[j]['price_before_discount'])
+                            quantity.append(item_detail[j]['amount'])
 
         new_offset = res.json()['new_offset']
 
-    shopee_dict["Order ID"]=order_id
-    shopee_dict["Seller"]=seller
-    shopee_dict["Created"]=create_time
-    shopee_dict["Amount"]=merchandise_subtotal
-    shopee_dict["Shipping Fee"]=shipping_fee
-    shopee_dict["Total"]=paid_amount
+    #store in purchase dict key
+    shopee_dict["Purchase"]={
+        "Order ID": order_id,
+        "Seller": seller, 
+        "Created": create_time, 
+        "Subtotal": merchandise_subtotal, 
+        "Shipping Fee": shipping_fee, 
+        "Total": paid_amount
+        }
+
+    #store in product dict key
+    shopee_dict["Product"]={
+        "Product ID": itemid,
+        "Product Name": name, 
+        "Quantity": quantity, 
+        "Price": price_before_discount, 
+        "Final Price": item_price
+        }
 
     return shopee_dict
 
@@ -87,21 +142,35 @@ def check_json():
 
 # Display data from json file
 # tabulate format refer to https://github.com/astanin/python-tabulate#table-format
-def df_shopee():
+def df_shopee_purchase():
     f = open('data/data.json')
     shopee_json = json.loads(f.read()) 
-    df = pd.DataFrame(shopee_json)
+    df = pd.DataFrame(shopee_json['Purchase'])
     
-    df['Amount'] = df['Amount'].apply(calculate_price)
+    df['Subtotal'] = df['Subtotal'].apply(calculate_price)
     df['Shipping Fee'] = df['Shipping Fee'].apply(calculate_price)
     df['Total'] = df['Total'].apply(calculate_price)
     df['Created'] = pd.to_datetime(df['Created'], unit='s')
 
     return df
 
+def df_shopee_product():
+    f = open('data/data.json')
+    shopee_json = json.loads(f.read()) 
+    df = pd.DataFrame(shopee_json['Product'])
+    
+    df['Product Name'] = df['Product Name'].str.slice(0, 70)
+    df['Product Name'] = df['Product Name'].apply(remove_emoji)
+    df['Price'] = list(map(has_original_price,df['Price'],df['Final Price']))
+    df['Price'] = df['Price'].apply(calculate_price)
+    df['Final Price'] = df['Final Price'].apply(calculate_price)
+    df['Discount'] = list(map(calculate_discount, df['Price'], df['Final Price']))
+
+    return df
+
 # Display purchase history
 def purchase_history():
-    df = df_shopee()
+    df = df_shopee_purchase()
     #set new index and drop default index
     df.set_index('Order ID', drop=True, inplace=True) 
     #add empty row
@@ -114,7 +183,7 @@ def purchase_history():
 
 # display pivot table by month
 def purchase_by_month():
-    df = df_shopee()
+    df = df_shopee_purchase()
     #convert from timestamp to datetime to get year and month
     df['Year'] = pd.to_datetime(df['Created'], unit='s').dt.year
     df['Month'] = pd.to_datetime(df['Created'], unit='s').apply(mapper)
@@ -137,7 +206,7 @@ def purchase_by_month():
 
 # purchase history in summary format
 def purchase_summary():
-    df = df_shopee()
+    df = df_shopee_purchase()
     #select specific column to sum and rename column header
     total = df.loc[:, ['Shipping Fee','Total']].sum().to_frame('Total')
 
@@ -155,18 +224,23 @@ def purchase_summary():
     print(total.to_markdown(tablefmt='psql',floatfmt=',.2f',index=False))
 
 def puchase_by_seller():
-    df = df_shopee()
+    df = df_shopee_purchase()
     #group by seller, calculate total sum and count transaction
-    df_seller = df.groupby('Seller')['Amount'].agg(Total='sum', Transaction='count')
+    df_seller = df.groupby('Seller')['Total'].agg(Total='sum', Transaction='count')
     print(df_seller.to_markdown(tablefmt='psql',floatfmt=',.2f'))
+
+def product_purchase_history():
+    df = df_shopee_product()
+    print(df.to_markdown(tablefmt='psql',floatfmt=',.2f'))
 
 #display menu option
 def display_menu():
     menu_options = {
-        1: 'All Purchase History',
+        1: 'Purchase History',
         2: 'Purchase History Pivot By Month and Year',
         3: 'Summary',
         4: 'Purchase History Group By Seller',
+        5: 'Product Purchase History',
         0: 'Exit Program',
     }
 
@@ -196,6 +270,8 @@ def mainmenu():
            purchase_summary()
         elif option == 4:
            puchase_by_seller()
+        elif option == 5:
+           product_purchase_history()
         elif option == 0:
             sys.exit(0)
         else:
