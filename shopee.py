@@ -20,24 +20,39 @@ def where_json_file(file_name):
 def calculate_price(price):
     return price / 100000
 
-
+# calculate discount
 def calculate_discount(original_price,discount_price):
     return original_price - discount_price
 
+# check if price have value
 def has_original_price(original_price,item_price):
     if(original_price > 0):
-        return original_price
+        return calculate_price(original_price)
     else:
-        return item_price
+        return calculate_price(item_price)
 
+#remove emoji
 def remove_emoji(string):
     return emoji.replace_emoji(string, '')
 
+#remove chinese char
 def strip_chinese(string):
     en_list = re.findall(u'[^\u4E00-\u9FA5]', string)
     for c in string:
         if c not in en_list:
             string = string.replace(c, '')
+    return string
+
+#truncate long text
+def truncate_text(string):
+    return string[:75]
+
+#remove all in single function
+def accepted_product_name(string):
+    string = strip_chinese(string)
+    string = remove_emoji(string)
+    string = truncate_text(string)
+
     return string
 
 # display full montah name. refer https://strftime.org/
@@ -154,17 +169,19 @@ def df_shopee_purchase():
 
     return df
 
+#get data from purchase dict key
 def df_shopee_product():
     f = open('data/data.json')
     shopee_json = json.loads(f.read()) 
     df = pd.DataFrame(shopee_json['Product'])
     
-    df['Product Name'] = df['Product Name'].str.slice(0, 70)
-    df['Product Name'] = df['Product Name'].apply(remove_emoji)
+    df['Product Name'] = df['Product Name'].apply(accepted_product_name)
+    #df['Product Name'] = df['Product Name'].str.slice(0,75)
     df['Price'] = list(map(has_original_price,df['Price'],df['Final Price']))
-    df['Price'] = df['Price'].apply(calculate_price)
     df['Final Price'] = df['Final Price'].apply(calculate_price)
     df['Discount'] = list(map(calculate_discount, df['Price'], df['Final Price']))
+    #re-arrange column
+    df = df.reindex(columns=['Product ID','Product Name','Price','Discount','Final Price'])
 
     return df
 
