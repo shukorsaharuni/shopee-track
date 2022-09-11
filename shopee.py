@@ -35,12 +35,10 @@ def has_original_price(original_price,item_price):
 def remove_emoji(string):
     return emoji.replace_emoji(string, '')
 
-#remove chinese char
-def strip_chinese(string):
-    en_list = re.findall(u'[^\u4E00-\u9FA5]', string)
-    for c in string:
-        if c not in en_list:
-            string = string.replace(c, '')
+#remove all character that isn't latin
+def latin_character(string):
+    regex = re.compile('[^\u0020-\u024F]')
+    string = regex.sub('', string)
     return string
 
 #truncate long text
@@ -49,7 +47,7 @@ def truncate_text(string):
 
 #remove all in single function
 def accepted_product_name(string):
-    string = strip_chinese(string)
+    string = latin_character(string)
     string = remove_emoji(string)
     string = truncate_text(string)
 
@@ -181,7 +179,7 @@ def df_shopee_product():
     df['Final Price'] = df['Final Price'].apply(calculate_price)
     df['Discount'] = list(map(calculate_discount, df['Price'], df['Final Price']))
     #re-arrange column
-    df = df.reindex(columns=['Product ID','Product Name','Price','Discount','Final Price'])
+    df = df.reindex(columns=['Product ID','Product Name','Quantity','Price','Discount','Final Price'])
 
     return df
 
@@ -224,6 +222,7 @@ def purchase_by_month():
 # purchase history in summary format
 def purchase_summary():
     df = df_shopee_purchase()
+    df_product = df_shopee_product()
     #select specific column to sum and rename column header
     total = df.loc[:, ['Shipping Fee','Total']].sum().to_frame('Total')
 
@@ -231,14 +230,18 @@ def purchase_summary():
     total.loc['Highest Shipping Fee'] = df['Shipping Fee'].max()
     total.loc['Highest Purchase Amount'] = df['Total'].max()
     total.loc['Lowest Purchase Amount'] = df['Total'].min()
-    total.loc['Total Transaction'] = df['Order ID'].count()
+    total.loc['Highest Product Price'] = df_product['Final Price'].max()
+    total.loc['Lowest Product Price'] = df_product['Final Price'].min()
+    total.loc['Highest Product Quantity'] = df_product['Quantity'].max()
+    total.loc['Total Purchase Transaction'] = df['Order ID'].count()
+    total.loc['Total Product Transaction'] = df_product['Product ID'].count()
 
     #rename index value
     total.rename(index={'Shipping Fee': 'Total Shipping Fee'},inplace=True)
     total.rename(index={'Total': 'Total Purchase Amount'},inplace=True)
     #rename index header and reset
     total = total.rename_axis('Desription').reset_index()
-    print(total.to_markdown(tablefmt='psql',floatfmt=',.2f',index=False))
+    print(total.to_markdown(tablefmt='grid',floatfmt=',.2f',index=False))
 
 def puchase_by_seller():
     df = df_shopee_purchase()
