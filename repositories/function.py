@@ -1,9 +1,11 @@
+from http import cookies
 import os
 import emoji
 import re
 import json
 import requests
 import configparser
+import browser_cookie3
 
 # Save data to json file
 def save_json_file(data):
@@ -70,6 +72,21 @@ def check_json():
         shopeedict = get_shopee()
         save_json_file(shopeedict)
 
+def cookies_logger():
+    cookies_dict = {}
+    reject_cookies = ["AMP_TOKEN","G_AUTHUSER_H","G_ENABLED_IDPS"]
+
+    try:
+        cookies = list(browser_cookie3.chrome(domain_name='shopee.com.my'))
+        if(len(cookies)>0):
+            for i in range(len(cookies)):
+                if not cookies[i].name in reject_cookies:
+                    cookies_dict[cookies[i].name]=cookies[i].value
+            
+            return cookies_dict
+    except:
+        print("Error retrieving cookies.")
+
 # Get shopee information from cookies
 def get_shopee():
     seller=[]
@@ -87,18 +104,14 @@ def get_shopee():
     shopee_dict={}
     new_offset=0
 
-    config  = configparser.ConfigParser()
-    config.read('config/credential.ini')
-    SPC_EC = config['SHOPEE']['SPC_EC']
-    
     while new_offset >= 0:
         url='https://shopee.com.my/api/v1/orders'
         params = {'limit':5,'order_type':3,'offset':new_offset}
         header = {
             'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36'
         }
-        cookie = {"SPC_EC":SPC_EC}
-        
+        cookie = cookies_logger()
+
         res=requests.get(url,params,cookies=cookie,headers=header)
         data = res.json()['orders']
         
