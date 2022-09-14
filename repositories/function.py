@@ -108,7 +108,18 @@ def get_shopee():
         url='https://shopee.com.my/api/v1/orders'
         params = {'limit':5,'order_type':3,'offset':new_offset}
         header = {
-            'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36'
+            'accept-encoding':'gzip, deflate, br',
+            'accept-language':'en-GB,en-US;q=0.9,en;q=0.8,fil;q=0.7',
+            'referer': 'https://shopee.com.my/user/purchase/?type=3',
+            'sec-ch-ua':'"Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-origin',
+            'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36',
+            'x-api-source': 'pc',
+            'x-requested-with':'XMLHttpRequest',
+            'x-shopee-language': 'en'
         }
         cookie = cookies_logger()
 
