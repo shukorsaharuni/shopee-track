@@ -14,6 +14,8 @@ def df_shopee_purchase():
     df['Total'] = df['Total'].apply(function.calculate_price)
     df['Created'] = pd.to_datetime(df['Created'], unit='s')
 
+    #select specific column
+    df = df.loc[:, ['Order SN', 'Seller', 'Created','Carrier','Subtotal','Shipping Fee','Total']]
     return df
 
 #get data from purchase dict key
@@ -21,21 +23,19 @@ def df_shopee_product():
     shopee = function.load_json()
     df = pd.DataFrame(shopee['Product'])
     
-    df['Product Name'] = df['Product Name'].apply(function.accepted_product_name)
-    #df['Product Name'] = df['Product Name'].str.slice(0,75)
-    df['Price'] = list(map(function.has_original_price,df['Price'],df['Final Price']))
-    df['Final Price'] = df['Final Price'].apply(function.calculate_price)
-    df['Discount'] = list(map(function.calculate_discount, df['Price'], df['Final Price']))
+    df['Product Name'] = df['Product Name'].apply(function.filtered_name,lgth=60)
+    df['Variation'] = df['Variation'].apply(function.truncate_text,lgth=20)
+    df['Net Price'] = list(map(function.has_original_price,df['Price'],df['Final Price']))
+    df['Subtotal'] = df['Final Price'].apply(function.calculate_price)
+    #df['Discount'] = list(map(function.calculate_discount, df['Price'], df['Final Price']))
     #re-arrange column
-    df = df.reindex(columns=['Product ID','Product Name','Quantity','Price','Discount','Final Price'])
+    df = df.reindex(columns=['Product ID','Product Name','Variation','Net Price','Quantity','Subtotal'])
 
     return df
 
 # Display purchase history
 def purchase_history():
-    df_shopee = df_shopee_purchase()
-    #select specific column
-    df=df_shopee.loc[:, ['Order SN', 'Seller', 'Created','Carrier','Subtotal','Shipping Fee','Total']]
+    df = df_shopee_purchase()
     #set new index and drop default index
     df.set_index('Order SN', drop=True, inplace=True) 
     #add empty row
@@ -93,7 +93,7 @@ def purchase_summary():
     total = total.rename_axis('Desription').reset_index()
     print(total.to_markdown(tablefmt='grid',floatfmt=',.2f',index=False))
 
-def puchase_by_seller():
+def purchase_by_seller():
     df = df_shopee_purchase()
     #group by seller, calculate total sum and count transaction
     df_seller = df.groupby('Seller')['Total'].agg(Total='sum', Transaction='count')
@@ -102,3 +102,9 @@ def puchase_by_seller():
 def product_purchase_history():
     df = df_shopee_product()
     print(df.to_markdown(tablefmt='psql',floatfmt=',.2f'))
+
+def purchase_by_carrier():
+    df = df_shopee_purchase()
+    #group by seller, calculate total sum and count transaction
+    df_seller = df.groupby('Carrier')['Order SN'].agg(Transaction='count')
+    print(df_seller.to_markdown(tablefmt='psql',floatfmt=',.2f'))

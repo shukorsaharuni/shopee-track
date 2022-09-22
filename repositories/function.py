@@ -45,15 +45,15 @@ def latin_character(string):
     return string
 
 #truncate long text
-def truncate_text(string):
+def truncate_text(string,lgth):
     #return string[:75]
-    return textwrap.fill(string, 70)
+    return textwrap.fill(string,lgth)
 
 #remove all in single function
-def accepted_product_name(string):
+def filtered_name(string,lgth):
     string = latin_character(string)
     string = remove_emoji(string)
-    string = truncate_text(string)
+    string = truncate_text(string,lgth)
 
     return string
 

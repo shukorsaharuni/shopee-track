@@ -11,6 +11,7 @@ def display_menu():
         3: 'Summary',
         4: 'Purchase History Group By Seller',
         5: 'Product Purchase History',
+        6: 'Transaction Group By Courier',
         0: 'Exit Program',
     }
 
@@ -39,9 +40,11 @@ def main():
         elif option == 3:
            datatable.purchase_summary()
         elif option == 4:
-           datatable.puchase_by_seller()
+           datatable.purchase_by_seller()
         elif option == 5:
            datatable.product_purchase_history()
+        elif option == 6:
+           datatable.purchase_by_carrier()
         elif option == 0:
             sys.exit(0)
         else:
