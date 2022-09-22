@@ -4,8 +4,8 @@ import emoji
 import re
 import json
 import requests
-import configparser
 import browser_cookie3
+import textwrap
 
 # Save data to json file
 def save_json_file(data):
@@ -46,7 +46,8 @@ def latin_character(string):
 
 #truncate long text
 def truncate_text(string):
-    return string[:75]
+    #return string[:75]
+    return textwrap.fill(string, 70)
 
 #remove all in single function
 def accepted_product_name(string):
@@ -100,9 +101,13 @@ def get_shopee():
     item_price=[]
     price_before_discount=[]
     quantity=[]
+    variation=[]
+    tracking_number=[]
+    carrier_name=[]
+    order_sn=[]
 
     shopee_dict={}
-    new_offset=0
+    new_offset=3
 
     while new_offset >= 0:
         url='https://shopee.com.my/api/v1/orders'
@@ -130,11 +135,14 @@ def get_shopee():
             if isinstance(details, dict):
                 #get purchase history
                 seller.append(details['seller']['username'])
-                order_id.append(details['ordersn'])
+                order_id.append(details['orderid'])
+                order_sn.append(details['ordersn'])
                 create_time.append(details['create_time'])
                 paid_amount.append(details['paid_amount'])
                 shipping_fee.append(details['shipping_fee'])
                 merchandise_subtotal.append(details['merchandise_subtotal'])
+                tracking_number.append(details['forders'][0]['third_party_tn'])
+                carrier_name.append(details['forders'][0]['carrier_name'])
                 
                 #get product purchase history
                 for i in range(len(details['items'])):
@@ -145,6 +153,10 @@ def get_shopee():
                         item_price.append(item['item_price'])
                         price_before_discount.append(item['price_before_discount'])
                         quantity.append(item['amount'])
+                        if('model_name' in item):
+                            variation.append(item['model_name'])
+                        else:
+                            variation.append('')
                     else:
                         #for purchase with bundle product
                         item_detail=item['extinfo']['bundle_order_item']['item_list']
@@ -154,14 +166,18 @@ def get_shopee():
                             item_price.append(item_detail[j]['item_price'])
                             price_before_discount.append(item_detail[j]['price_before_discount'])
                             quantity.append(item_detail[j]['amount'])
+                            variation.append(item_detail[j]['model_name'])
 
         new_offset = res.json()['new_offset']
 
     #store in purchase dict key
     shopee_dict["Purchase"]={
+        "Order SN": order_sn,
         "Order ID": order_id,
         "Seller": seller, 
         "Created": create_time, 
+        "Tracking No": tracking_number, 
+        "Carrier": carrier_name, 
         "Subtotal": merchandise_subtotal, 
         "Shipping Fee": shipping_fee, 
         "Total": paid_amount
@@ -171,6 +187,7 @@ def get_shopee():
     shopee_dict["Product"]={
         "Product ID": itemid,
         "Product Name": name, 
+        "Variation": variation, 
         "Quantity": quantity, 
         "Price": price_before_discount, 
         "Final Price": item_price

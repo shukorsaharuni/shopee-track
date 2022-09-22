@@ -35,9 +35,9 @@ def df_shopee_product():
 def purchase_history():
     df = df_shopee_purchase()
     #set new index and drop default index
-    df.set_index('Order ID', drop=True, inplace=True) 
+    df.set_index('Order SN', drop=True, inplace=True) 
     #add empty row
-    df.loc[''] = [np.NaN, np.NaN, np.NaN, np.NaN, np.NaN]
+    df.loc[''] = [np.NaN, np.NaN, np.NaN, np.NaN, np.NaN, np.NaN, np.NaN, np.NaN]
     #sum all numeric column 
     df.loc['Grand Total'] = df.sum(numeric_only=True, axis=0) #.apply('{:,.2f}'.format) 
     #remove all nan value
