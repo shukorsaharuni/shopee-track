@@ -71,24 +71,23 @@ def purchase_by_month():
 
 # purchase history in summary format
 def purchase_summary():
-    df = df_shopee_purchase()
+    df_purchase = df_shopee_purchase()
     df_product = df_shopee_product()
     #select specific column to sum and rename column header
-    total = df.loc[:, ['Shipping Fee','Total']].sum().to_frame('Total')
+    total = df_purchase.loc[:, ['Shipping Fee','Total']].sum().to_frame('Total')
 
     #add new row for different calculation
-    total.loc['Highest Shipping Fee'] = df['Shipping Fee'].max()
-    total.loc['Highest Purchase Amount'] = df['Total'].max()
-    total.loc['Lowest Purchase Amount'] = df['Total'].min()
-    total.loc['Highest Product Price'] = df_product['Final Price'].max()
-    total.loc['Lowest Product Price'] = df_product['Final Price'].min()
+    total.loc['Highest Shipping Fee'] = df_purchase['Shipping Fee'].max()
+    total.loc['Highest Purchase Amount'] = df_purchase['Total'].max()
+    total.loc['Lowest Purchase Amount'] = df_purchase['Total'].min()
+    total.loc['Highest Product Price'] = df_product['Subtotal'].max()
+    total.loc['Lowest Product Price'] = df_product['Subtotal'].min()
     total.loc['Highest Product Quantity'] = df_product['Quantity'].max()
-    total.loc['Total Purchase Transaction'] = df['Order ID'].count()
+    total.loc['Total Purchase Transaction'] = df_purchase['Order SN'].count()
     total.loc['Total Product Transaction'] = df_product['Product ID'].count()
 
     #rename index value
-    total.rename(index={'Shipping Fee': 'Total Shipping Fee'},inplace=True)
-    total.rename(index={'Total': 'Total Purchase Amount'},inplace=True)
+    total.rename(index={'Shipping Fee': 'Total Shipping Fee','Total': 'Total Purchase Amount'},inplace=True)
     #rename index header and reset
     total = total.rename_axis('Desription').reset_index()
     print(total.to_markdown(tablefmt='grid',floatfmt=',.2f',index=False))
