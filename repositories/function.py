@@ -107,7 +107,7 @@ def get_shopee():
     order_sn=[]
 
     shopee_dict={}
-    new_offset=3
+    new_offset=0
 
     while new_offset >= 0:
         url='https://shopee.com.my/api/v1/orders'

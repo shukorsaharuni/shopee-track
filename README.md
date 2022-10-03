@@ -7,13 +7,7 @@ pip install -r requirements.txt
 ```
 
 ### Usage
-Rename `credential.ini.sample` to `credential.ini`.
-Edit `credential.ini` by your editor.
-
-```
-[SHOPEE]
-SPC_EC = your shopee cookies here
-```
+Log in into Shopee account through Google Chrome browser and navigate to purchase history
 
 Execute python script.
 
@@ -24,8 +18,9 @@ python shopee.py
 ## Todo
 - [x] Menu Selection
 - [x] Purchase History
-- [ ] Calculate Total by Month and Year
-- [ ] Purchase History by Product
+- [x] Calculate Total by Month and Year
+- [x] Purchase History by Product
+- [x] Summary
 
 ## License
 Licensed under the [MIT license](http://opensource.org/licenses/MIT)
